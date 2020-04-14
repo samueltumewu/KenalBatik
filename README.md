@@ -9,7 +9,7 @@ also available VGG16 and VGG19 models to compare with Resnet.
 - **Create Dataset.ipynb**: to Create Supervised Dataset which splitted into Train and Validation Dataset. Save in hdf5/h5py format.
 - **MAIN_SYSTEM**: Folder contain all python files to training and evaluating model.
 
-## Folder MAIN_SYSTEM, How to Use:
+## Folder MAIN_SYSTEM, How to Use main.py:
 
 >**required arguments**:
 - **model name** options are: **resnet50**, **resnet18**, **vgg16**, or **vgg19**
