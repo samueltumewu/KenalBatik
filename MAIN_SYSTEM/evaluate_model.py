@@ -2,6 +2,7 @@ import sys
 import h5py
 import numpy as np
 from my_resnet50 import ResNet50
+from my_resnet18 import ResNet18
 from dataset_processing_utils import convert_to_one_hot
 from keras import optimizers
 
@@ -33,7 +34,7 @@ def retrieve_test_dataset(test_file):
     
     return X_test, Y_test 
 
-def main(path_weight_file, test_file, class_num):
+def main(resnetlayer, path_weight_file, test_file, class_num):
     """
     main function to print model evaluation result
 
@@ -46,7 +47,10 @@ def main(path_weight_file, test_file, class_num):
     none
     """
     # Init new model as ResNet50
-    new_model = ResNet50(input_shape=(224, 224, 3), classes=int(class_num))
+    if resnetlayer.lower() == "resnet18":
+        new_model = ResNet18(input_shape=(224, 224, 3), classes=int(class_num))
+    elif resnetlayer.lower() == "resnet50":
+        new_model = ResNet50(input_shape=(224, 224, 3), classes=int(class_num))
     
     # Load model weights
     new_model.load_weights(path_weight_file)
@@ -61,8 +65,8 @@ def main(path_weight_file, test_file, class_num):
     print(f"loss: {loss},   acc: {acc}")
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4:
-        main(sys.argv[1], sys.argv[2], sys.argv[3])
+    if len(sys.argv) == 5:
+        main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     else:
         print("Error. please check your arguments:")
-        print("python evaluate_model.py [path_weight_file] [test_file] [class_num] ")    
+        print("python evaluate_model.py [resnet layer] [path_weight_file] [test_file] [class_num] ")    

@@ -54,7 +54,8 @@ def identity_block(X, f, filters, stage, block):
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    
+    X = Dropout(0.5)(X)
+
     # Second component of main path (≈3 lines)
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
@@ -63,6 +64,8 @@ def identity_block(X, f, filters, stage, block):
     # Third component of main path (≈2 lines)
     X = Conv2D(filters = F3, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
+
+    X = Dropout(0.5)(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = Add()([X, X_shortcut])
@@ -103,20 +106,25 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
+    X = Dropout(0.5)(X)
+
     # Second component of main path (≈3 lines)
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
-
     # Third component of main path (≈2 lines)
     X = Conv2D(filters = F3, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
 
+    X = Dropout(0.5)(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(filters = F3, kernel_size = (1, 1), strides = (s,s), padding = 'valid', name = conv_name_base + '1',
                         kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
+
+    X = Dropout(0.5)(X)
+
     X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)

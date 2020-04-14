@@ -1,9 +1,16 @@
+# load requirements for model resnet50 and resnet18
 from my_resnet50 import *
 from my_resnet18 import *
 from dataset_processing_utils import *
 import matplotlib.pyplot as plt
 
-def run(resnetlayer, train_file, test_file, num_classes, epoch = 100, batch_size = 32, lr_value = 1e-3 , optimizer = 1, input_shape_arg = (224,224,3)):
+# load requirements for pretrained model (vgg16, vgg19)
+from keras import applications
+from keras import optimizers
+from keras.models import Sequential,Model,load_model
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D,GlobalAveragePooling2D
+
+def run(model_name, train_file, test_file, num_classes, epoch = 100, batch_size = 32, lr_value = 1e-3 , optimizer = 1, input_shape_arg = (224,224,3)):
     """
         fit dataset and run training process
 
@@ -32,22 +39,42 @@ def run(resnetlayer, train_file, test_file, num_classes, epoch = 100, batch_size
         myoptimizer = optimizers.Adam(lr=lr_value)
 
     # compile model
-    if resnetlayer == "resnet50":
+    if model_name == "resnet50":
         print("resnet50")
         model = ResNet50(input_shape=input_shape_arg, classes=int(num_classes))
         # for layer in [l for l in model.layers if l.name in ['res3d', 'res4'] or 'res5' in l.name]:
         #     layer.trainable = False
         model.compile(optimizer=myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
-    elif resnetlayer == "resnet18":
+    elif model_name == "resnet18":
         print("resnet18")
         model = ResNet18(input_shape=input_shape_arg, classes=int(num_classes))
         model.compile(optimizer=myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+    elif model_name == "vgg19":
+        print("VGG19")
+        # configure model
+        base_model = applications.vgg19.VGG19(weights= None, include_top=False, input_shape= input_shape_arg)
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
+        out = Dense(int(num_classes), activation= 'softmax')(x)
+        model = Model(inputs = base_model.input, outputs = out)
+        model.compile(optimizer= myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+    elif model_name == "vgg16":
+        print("VGG16")
+        # configure model
+        base_model = applications.vgg16.VGG16(weights= None, include_top=False, input_shape= input_shape_arg)
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
+        out = Dense(int(num_classes), activation= 'softmax')(x)
+        model = Model(inputs = base_model.input, outputs = out)
+        model.compile(optimizer= myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     # preprocessing data
     X_train, Y_train, X_test, Y_test = dataset_preprocess(num_classes, train_file, test_file)
 
     # set checkpoint 
-    ckpt_filename = f"my{resnetlayer}-{batch_size}-{optimizer}-{lr_value}.hdf5"
+    ckpt_filename = f"my{model_name}-{batch_size}-{optimizer}-{lr_value}.hdf5"
     checkpoint = ModelCheckpoint(ckpt_filename,
                                 monitor='val_accuracy',
                                 save_best_only="True",
@@ -85,7 +112,12 @@ def run(resnetlayer, train_file, test_file, num_classes, epoch = 100, batch_size
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
 
-    plt.savefig(f"my{resnetlayer}-{batch_size}-{optimizer}-{lr_value}.png")
+    plt.savefig(f"my{model_name}-{batch_size}-{optimizer}-{lr_value}.png")
+
+    # evaluate model immediately
+    loss, acc = model.evaluate(X_test, Y_test)
+    print("evaluate model immediately")
+    print(f"loss: {loss},   acc: {acc}")
 
     # return model, and testing data
     return model, X_test, Y_test
