@@ -1,4 +1,5 @@
-# Resnet-Batik-Classification
+# KENALBATIK
+## Resnet-Batik-Classification
 Classify Batik (Ceplok, Kawung, Lereng, Nitik, Parang, Lunglungan, and Semen) using Resnet50 and Resnet18.
 
 also available VGG16 and VGG19 models to compare with Resnet.
