@@ -4,7 +4,7 @@ from keras import optimizers
 from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D, Dropout
 from keras.models import Model, load_model
-from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+# from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
@@ -17,9 +17,6 @@ from keras.initializers import glorot_uniform
 import keras.backend as K
 K.set_image_data_format('channels_last')
 K.set_learning_phase(1)
-
-# image input output manager
-import imageio
 
 # HDF5 file manager
 import h5py
@@ -51,21 +48,20 @@ def identity_block(X, f, filters, stage, block):
     
     # First component of main pathonvolved with the layer input to produce 
     X = Conv2D(filters = F1, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Dropout(0.5)(X)
-
     # Second component of main path (≈3 lines)
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters = F3, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
-
-    X = Dropout(0.5)(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = Add()([X, X_shortcut])
@@ -103,28 +99,26 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     ##### MAIN PATH #####
     # First component of main path 
     X = Conv2D(F1, (1, 1), strides = (s,s), name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Dropout(0.5)(X)
-
     # Second component of main path (≈3 lines)
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
     X = Activation('relu')(X)
 
     # Third component of main path (≈2 lines)
     X = Conv2D(filters = F3, kernel_size = (1, 1), strides = (1,1), padding = 'valid', name = conv_name_base + '2c', kernel_initializer = glorot_uniform(seed=0))(X)
+    # X = Dropout(0.2)(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2c')(X)
-
-    X = Dropout(0.5)(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(filters = F3, kernel_size = (1, 1), strides = (s,s), padding = 'valid', name = conv_name_base + '1',
                         kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
-
-    X = Dropout(0.5)(X)
-
+    
+    # X = Dropout(0.2)(X)
     X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
@@ -133,7 +127,7 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     
     return X
 
-def ResNet50(input_shape, classes):
+def ResNet50(input_shape, classes, dropout_value=0):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> CONVBLOCK -> IDBLOCK*2 -> CONVBLOCK -> IDBLOCK*3
@@ -146,6 +140,8 @@ def ResNet50(input_shape, classes):
     Returns:
     model -- a Model() instance in Keras
     """
+    # Define Dropout value
+    DROPOUT_VALUE = dropout_value
 
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
@@ -155,36 +151,52 @@ def ResNet50(input_shape, classes):
     X = (X_input)
 
     # Stage 1
-    X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
-    X = BatchNormalization(axis=3, name='bn_conv1')(X)
+    X = Conv2D(64, (7, 7), strides=(2, 2), name='res1', kernel_initializer=glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis=3, name='bn_res1')(X)
     X = Activation('relu')(X)
     X = MaxPooling2D((3, 3), strides=(2, 2))(X)
 
     # Stage 2
     X = convolutional_block(X, f=3, filters=[64, 64, 256], stage=2, block='a', s=1)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64, 256], stage=2, block='b')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64, 256], stage=2, block='c')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     ### START CODE HERE ###
 
     # Stage 3 (≈4 lines)
     X = convolutional_block(X, f = 3, filters = [128, 128, 512], stage = 3, block='a', s = 2)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='b')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='c')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='d')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 4 (≈6 lines)
     X = convolutional_block(X, f = 3, filters = [256, 256, 1024], stage = 4, block='a', s = 2)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='b')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='c')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='d')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='e')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='f')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 5 (≈3 lines)
     X = convolutional_block(X, f = 3, filters = [512, 512, 2048], stage = 5, block='a', s = 2)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='b')
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='c')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
     X = AveragePooling2D((2,2), name="avg_pool")(X)

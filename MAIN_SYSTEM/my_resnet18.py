@@ -18,9 +18,6 @@ import keras.backend as K
 K.set_image_data_format('channels_last')
 K.set_learning_phase(1)
 
-# image input output manager
-import imageio
-
 # HDF5 file manager
 import h5py
 
@@ -54,12 +51,8 @@ def identity_block(X, f, filters, stage, block):
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Dropout(0.5)(X)
-
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
-
-    X = Dropout(0.5)(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
     X = Add()([X, X_shortcut])
@@ -99,19 +92,12 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Dropout(0.5)(X)
-
     X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
-
-    X = Dropout(0.5)(X)
 
     ##### SHORTCUT PATH #### (≈2 lines)
     X_shortcut = Conv2D(filters = F1, kernel_size = (1, 1), strides = (s,s), padding = 'valid', name = conv_name_base + '1',
                         kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
-
-    X = Dropout(0.5)(X)
-
     X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
@@ -120,7 +106,7 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
     
     return X
 
-def ResNet18(input_shape, classes):
+def ResNet18(input_shape, classes, dropout_value=0.3):
     """
     Implementation of the popular ResNet50 the following architecture:
     CONV2D -> BATCHNORM -> RELU -> MAXPOOL -> [CONVBLOCK -> IDBLOCK]*4 -> AVGPOOL -> TOPLAYER
@@ -133,6 +119,9 @@ def ResNet18(input_shape, classes):
     model -- a Model() instance in Keras
     """
 
+    # Define dropout value
+    DROPOUT_VALUE = dropout_value
+
     # Define the input as a tensor with shape input_shape
     X_input = Input(input_shape)
 
@@ -141,35 +130,41 @@ def ResNet18(input_shape, classes):
     X = (X_input)
 
     # Stage 1
-    X = Conv2D(64, (7, 7), strides=(2, 2), name='conv1', kernel_initializer=glorot_uniform(seed=0))(X)
-    X = BatchNormalization(axis=3, name='bn_conv1')(X)
+    X = Conv2D(64, (7, 7), strides=(2, 2), name='res1', kernel_initializer=glorot_uniform(seed=0))(X)
+    X = BatchNormalization(axis=3, name='bn_res1')(X)
     X = Activation('relu')(X)
     X = MaxPooling2D((3, 3), strides=(2, 2))(X)
 
     # Stage 2
     X = convolutional_block(X, f=3, filters=[64, 64], stage=2, block='a', s=1)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64], stage=2, block='b')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 3
     X = convolutional_block(X, f = 3, filters = [128, 128], stage = 3, block='a', s = 2)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128], stage=3, block='b')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 4
     X = convolutional_block(X, f = 3, filters = [256, 256], stage = 4, block='a', s = 2)
+    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256], stage=4, block='b')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 5
     X = convolutional_block(X, f = 3, filters = [512, 512], stage = 5, block='a', s = 2)
     X = identity_block(X, 3, [512, 512], stage=5, block='b')
+    X = Dropout(DROPOUT_VALUE)(X)
 
     # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
     X = AveragePooling2D((2,2), name="avg_pool")(X)
-
     ### END CODE HERE ###
 
     # output layer
-    X = Dropout(0.5)(X)
     X = Flatten()(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = Dense(classes, activation='softmax', name='fc' + str(classes), kernel_initializer = glorot_uniform(seed=0))(X)
     
     
