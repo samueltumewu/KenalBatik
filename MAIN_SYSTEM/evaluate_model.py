@@ -6,7 +6,7 @@ from my_resnet18 import ResNet18
 from dataset_processing_utils import convert_to_one_hot
 from keras import optimizers
 
-def retrieve_test_dataset(test_file):
+def retrieve_test_dataset(test_file, num_class):
     """
     load and preprocess test dataset from .h5 file
 
@@ -30,11 +30,11 @@ def retrieve_test_dataset(test_file):
     Y_test = test_set_y_orig/255.
     
     # Convert test set Y to one hot matrix
-    Y_test = convert_to_one_hot(test_set_y_orig, 5).T
+    Y_test = convert_to_one_hot(test_set_y_orig, num_class).T
     
     return X_test, Y_test 
 
-def main(resnetlayer, path_weight_file, test_file, class_num):
+def eval(resnetlayer, path_weight_file, test_file, class_num):
     """
     main function to print model evaluation result
 
@@ -56,7 +56,7 @@ def main(resnetlayer, path_weight_file, test_file, class_num):
     new_model.load_weights(path_weight_file)
 
     # retrieve X_test, Y_test
-    X_test, Y_test = retrieve_test_dataset(test_file)
+    X_test, Y_test = retrieve_test_dataset(test_file, int(class_num))
 
     # Evaluate the model
     adam = optimizers.Adam(lr=0.0001)
@@ -66,7 +66,7 @@ def main(resnetlayer, path_weight_file, test_file, class_num):
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:
-        main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        eval(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     else:
         print("Error. please check your arguments:")
         print("python evaluate_model.py [resnet layer] [path_weight_file] [test_file] [class_num] ")    

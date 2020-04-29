@@ -11,12 +11,13 @@ from keras.models import Sequential,Model,load_model
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D,GlobalAveragePooling2D
 from keras.callbacks import TensorBoard,ReduceLROnPlateau,ModelCheckpoint
 
-def retrieve_test_dataset(test_file):
+def retrieve_test_dataset(test_file, num_classes):
     """
     load and preprocess test dataset from .h5 file
 
     Arguments:\n
     test_file --> String, path to which store h5 file of test dataset
+    num_classes --> Int, number of classes or labels
 
     Returns:\n
     X_test --> set X of test dataset
@@ -35,16 +36,32 @@ def retrieve_test_dataset(test_file):
     Y_test = test_set_y_orig/255.
     
     # Convert test set Y to one hot matrix
-    Y_test = convert_to_one_hot(test_set_y_orig, 5).T
+    Y_test = convert_to_one_hot(test_set_y_orig, num_classes).T
     
     return X_test, Y_test 
+
+def evaluate(model, path_weight_file, test_file, num_classes):
+    # assign model
+    new_model = model
+
+    # Load model weights
+    new_model.load_weights(path_weight_file)
+
+    # retrieve X_test, Y_test
+    X_test, Y_test = retrieve_test_dataset(test_file, num_classes)
+
+    # Evaluate the model
+    adam = optimizers.Adam(lr=1e-4)
+    new_model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+    loss, acc = new_model.evaluate(X_test, Y_test)
+    print(f"loss: {loss},   acc: {acc}")
 
 def main(model_code, path_weight_file, test_file, class_num):
     """
     main function to print model evaluation result
 
     Arguments:\n
-    model_code --> Int, 1 for resnet50, 2 for vgg16, 3 for vgg19
+    model_code --> String, model code/name: vgg19 and vgg16
     class_num --> Int, number of class/label\n
     path_weight_file --> String, path which store .hdf5 of model's weight\n
     test_file --> String, path to which store .h5 file of test dataset
@@ -52,9 +69,7 @@ def main(model_code, path_weight_file, test_file, class_num):
     Returns:\n
     none
     """
-    if int(model_code) == 1:
-        print("model code 1")
-    elif int(model_code) == 2:
+    if model_code.lower() == "vgg16":
         print("loading vgg16...")
         img_height,img_width = 224,224 
         num_classes = int(class_num)
@@ -64,8 +79,8 @@ def main(model_code, path_weight_file, test_file, class_num):
         x = Dropout(0.5)(x)
         out = Dense(num_classes, activation= 'softmax')(x)
         new_model = Model(inputs = base_model.input, outputs = out)
-        evaluate(new_model, path_weight_file, test_file)
-    elif int(model_code) == 3:
+        evaluate(new_model, path_weight_file, test_file, class_num)
+    elif model_code.lower() == "vgg19":
         print("loading vgg19...")
         img_height,img_width = 224,224 
         num_classes = int(class_num)
@@ -75,27 +90,11 @@ def main(model_code, path_weight_file, test_file, class_num):
         x = Dropout(0.5)(x)
         out = Dense(num_classes, activation= 'softmax')(x)
         new_model = Model(inputs = base_model.input, outputs = out)
-        evaluate(new_model, path_weight_file, test_file)
-
-def evaluate(model, path_weight_file, test_file):
-    # assign model
-    new_model = model
-
-    # Load model weights
-    new_model.load_weights(path_weight_file)
-
-    # retrieve X_test, Y_test
-    X_test, Y_test = retrieve_test_dataset(test_file)
-
-    # Evaluate the model
-    adam = optimizers.Adam(lr=1e-4)
-    new_model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
-    loss, acc = new_model.evaluate(X_test, Y_test)
-    print(f"loss: {loss},   acc: {acc}")
+        evaluate(new_model, path_weight_file, test_file, class_num)
 
 if __name__ == "__main__":
     if len(sys.argv) == 5:
-        main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        main(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]))
     else:
         print("Error. please check your arguments:")
-        print("python evaluate_pretrained_model.py [model code] [path_weight_file] [test_file] [class_num] ")    
+        print("python evaluate_pretrained_model.py [model name] [path_weight_file] [test_file] [class_num] ")    
