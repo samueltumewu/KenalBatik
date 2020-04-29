@@ -4,7 +4,7 @@ from keras import optimizers
 from keras import layers
 from keras.layers import Input, Add, Dense, Activation, ZeroPadding2D, BatchNormalization, Flatten, Conv2D, AveragePooling2D, MaxPooling2D, GlobalMaxPooling2D, Dropout
 from keras.models import Model, load_model
-# from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
 from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
@@ -158,9 +158,9 @@ def ResNet50(input_shape, classes, dropout_value=0):
 
     # Stage 2
     X = convolutional_block(X, f=3, filters=[64, 64, 256], stage=2, block='a', s=1)
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64, 256], stage=2, block='b')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64, 256], stage=2, block='c')
     X = Dropout(DROPOUT_VALUE)(X)
 
@@ -168,33 +168,33 @@ def ResNet50(input_shape, classes, dropout_value=0):
 
     # Stage 3 (≈4 lines)
     X = convolutional_block(X, f = 3, filters = [128, 128, 512], stage = 3, block='a', s = 2)
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='b')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='c')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128, 512], stage=3, block='d')
     X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 4 (≈6 lines)
     X = convolutional_block(X, f = 3, filters = [256, 256, 1024], stage = 4, block='a', s = 2)
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='b')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='c')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='d')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='e')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='f')
     X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 5 (≈3 lines)
     X = convolutional_block(X, f = 3, filters = [512, 512, 2048], stage = 5, block='a', s = 2)
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='b')
-    # X = Dropout(DROPOUT_VALUE)(X)
+    X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='c')
     X = Dropout(DROPOUT_VALUE)(X)
 
