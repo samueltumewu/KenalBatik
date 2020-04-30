@@ -1,55 +1,7 @@
+# on this project
+.ipynb_checkpoints/
+MAIN_SYSTEM/__pycache__/
 
-Skip to content
-Pull requests
-Issues
-Marketplace
-Explore
-@samueltumewu
-github /
-gitignore
-
-3.1k
-101k
-
-    53k
-
-Code
-Pull requests 123
-Actions
-Projects 0
-Security 0
-
-    Insights
-
-gitignore/Python.gitignore
-@pradyunsg pradyunsg Remove pip-wheel-metadata/ from Python.gitignore (#3364) 14f8a8b 18 days ago
-@arcresu
-@shiftkey
-@Lucretiel
-@Harrison-G
-@jwg4
-@GabrielC101
-@misaelnieto
-@pmsosa
-@svkampen
-@vltr
-@thedrow
-@matheussl
-@hugovk
-@ghisvail
-@EvandroLG
-@DSIW
-@amigcamel
-@toanant
-@2Cubed
-@brettcannon
-@weinihou
-@Visgean
-@nvie
-@skuschel
-@sigo
-@sethmlarson
-138 lines (112 sloc) 1.99 KB
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
