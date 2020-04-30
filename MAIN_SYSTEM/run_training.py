@@ -51,22 +51,26 @@ def run(model_name, train_file, val_file, num_classes, dropout_value, epoch = 10
         model.compile(optimizer=myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     elif model_name == "vgg19":
         print("VGG19")
-        # configure model
+        # configure model input    
         base_model = applications.vgg19.VGG19(weights= None, include_top=False, input_shape= input_shape_arg)
+        # configure model output
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dropout(dropout_value)(x)
         out = Dense(int(num_classes), activation= 'softmax')(x)
+        # combine model then compile
         model = Model(inputs = base_model.input, outputs = out)
         model.compile(optimizer= myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     elif model_name == "vgg16":
         print("VGG16")
-        # configure model
+        # configure model input
         base_model = applications.vgg16.VGG16(weights= None, include_top=False, input_shape= input_shape_arg)
+        # configure model output
         x = base_model.output
         x = GlobalAveragePooling2D()(x)
         x = Dropout(dropout_value)(x)
         out = Dense(int(num_classes), activation= 'softmax')(x)
+        # combine model then compile
         model = Model(inputs = base_model.input, outputs = out)
         model.compile(optimizer= myoptimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
