@@ -14,7 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--dropout', '-d', type=float, default=0, help="Dropout Value")
     parser.add_argument('--epoch', '-e', type=int, default=100, help="Epoch of training")
     parser.add_argument('--class_number', '-c', type=int, default=5, help="Number of classes/labels")
-    parser.add_argument('--batch_size', '-b', type=int, default=32)
+    parser.add_argument('--batch_size', '-b', type=int, default=32, help="batch size")
     parser.add_argument('--optimizer', '-o', default='adam', help='Optimizer for model')
     parser.add_argument('--lr_value', '-lr', default=1e-3, type=float, help='learning rate value for optimizer')
     
