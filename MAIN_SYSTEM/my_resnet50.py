@@ -175,7 +175,7 @@ def ResNet50(input_shape, classes, dropout_value=0):
     X = identity_block(X, 3, [256, 256, 1024], stage=4, block='f')
     X = Dropout(DROPOUT_VALUE)(X)
 
-    # Stage 5
+    # Stage 5       
     X = convolutional_block(X, f = 3, filters = [512, 512, 2048], stage = 5, block='a', s = 2)
     X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='b')
@@ -183,10 +183,8 @@ def ResNet50(input_shape, classes, dropout_value=0):
     X = identity_block(X, 3, [512, 512, 2048], stage=5, block='c')
     X = Dropout(DROPOUT_VALUE)(X)
 
-    # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
+    # AVGPOOL
     X = AveragePooling2D((2,2), name="avg_pool")(X)
-
-    ### END CODE HERE ###
 
     # output layer
     X = Flatten()(X)
