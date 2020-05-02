@@ -5,7 +5,7 @@ from my_resnet50 import ResNet50
 from my_resnet18 import ResNet18
 from dataset_processing_utils import convert_to_one_hot
 from keras import optimizers
-from keras.models import load_model
+from keras.models import Model, load_model
 import argparse
 
 # vgg utils
@@ -43,7 +43,7 @@ def retrieve_test_dataset(test_file, num_class):
 
 def eval_use_weight(model_name, path_weight_file, test_file, class_num):
     """
-    main function to print model evaluation result
+    evaluating model by using weights
 
     Arguments:\n
     model_name --> String, Resnet50/Resnet18/VGG16/VGG19
@@ -54,7 +54,7 @@ def eval_use_weight(model_name, path_weight_file, test_file, class_num):
     Returns:\n
     none
     """
-    # Init new model as ResNet50
+    # Init new model
     if model_name.lower() == "resnet18":
         print("loading resnet18...")
         new_model = ResNet18(input_shape=(224, 224, 3), classes=int(class_num))
@@ -83,7 +83,8 @@ def eval_use_weight(model_name, path_weight_file, test_file, class_num):
         new_model = Model(inputs = base_model.input, outputs = out)
     
     # Load model weights
-    new_model.load_weights(path_weight_file)
+    new_model = Model()
+    new_model = load_model(path_weight_file)
 
     # retrieve X_test, Y_test
     X_test, Y_test = retrieve_test_dataset(test_file, int(class_num))
@@ -94,9 +95,33 @@ def eval_use_weight(model_name, path_weight_file, test_file, class_num):
     loss, acc = new_model.evaluate(X_test, Y_test)
     print(f"loss: {loss},   acc: {acc}")
 
+def eval_use_model(model_name, path_model_file, test_file, class_num):
+    """
+    evaluating model by using entire model (weights, architecture, optimizers, etc.)
+
+    Arguments:\n
+    model_name --> String, Resnet50/Resnet18/VGG16/VGG19
+    path_model_file --> String, path which store .hdf5 of model's weight\n
+    test_file --> String, path to which store .h5 file of test dataset
+    class_num --> Int, number of class/label\n
+
+    Returns:\n
+    none
+    """
+    # Load model weights
+    new_model = Model()
+    new_model = load_model(path_model_file)
+
+    # retrieve X_test, Y_test
+    X_test, Y_test = retrieve_test_dataset(test_file, int(class_num))
+
+    for i in range(4):
+        loss, acc = new_model.evaluate(X_test, Y_test)
+        print(f"{i}--> loss: {loss},   acc: {acc}")
+
 if __name__ == "__main__":  
     if len(sys.argv) == 5:
-        eval_use_weight(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        eval_use_model(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     else:
         print("Error. please check your arguments:")
         print("python evaluate_model.py [model name] [path_weight_file] [test_file] [class_num] ")    
