@@ -5,6 +5,13 @@ from my_resnet50 import ResNet50
 from my_resnet18 import ResNet18
 from dataset_processing_utils import convert_to_one_hot
 from keras import optimizers
+from keras.models import load_model
+import argparse
+
+# vgg utils
+from keras import applications
+from keras.models import Sequential,Model,load_model
+from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D,GlobalAveragePooling2D
 
 def retrieve_test_dataset(test_file, num_class):
     """
@@ -34,23 +41,46 @@ def retrieve_test_dataset(test_file, num_class):
     
     return X_test, Y_test 
 
-def eval(resnetlayer, path_weight_file, test_file, class_num):
+def eval_use_weight(model_name, path_weight_file, test_file, class_num):
     """
     main function to print model evaluation result
 
     Arguments:\n
-    class_num --> Int, number of class/label\n
+    model_name --> String, Resnet50/Resnet18/VGG16/VGG19
     path_weight_file --> String, path which store .hdf5 of model's weight\n
     test_file --> String, path to which store .h5 file of test dataset
+    class_num --> Int, number of class/label\n
 
     Returns:\n
     none
     """
     # Init new model as ResNet50
-    if resnetlayer.lower() == "resnet18":
+    if model_name.lower() == "resnet18":
+        print("loading resnet18...")
         new_model = ResNet18(input_shape=(224, 224, 3), classes=int(class_num))
-    elif resnetlayer.lower() == "resnet50":
+    elif model_name.lower() == "resnet50":
+        print("loading resnet50...")
         new_model = ResNet50(input_shape=(224, 224, 3), classes=int(class_num))
+    if model_name.lower() == "vgg16":
+        print("loading vgg16...")
+        img_height,img_width = 224,224 
+        num_classes = int(class_num)
+        base_model = applications.vgg16.VGG16(weights= None, include_top=False, input_shape= (img_height,img_width,3))
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
+        out = Dense(num_classes, activation= 'softmax')(x)
+        new_model = Model(inputs = base_model.input, outputs = out)
+    elif model_name.lower() == "vgg19":
+        print("loading vgg19...")
+        img_height,img_width = 224,224 
+        num_classes = int(class_num)
+        base_model = applications.vgg19.VGG19(weights= None, include_top=False, input_shape= (img_height,img_width,3))
+        x = base_model.output
+        x = GlobalAveragePooling2D()(x)
+        x = Dropout(0.5)(x)
+        out = Dense(num_classes, activation= 'softmax')(x)
+        new_model = Model(inputs = base_model.input, outputs = out)
     
     # Load model weights
     new_model.load_weights(path_weight_file)
@@ -64,9 +94,9 @@ def eval(resnetlayer, path_weight_file, test_file, class_num):
     loss, acc = new_model.evaluate(X_test, Y_test)
     print(f"loss: {loss},   acc: {acc}")
 
-if __name__ == "__main__":
+if __name__ == "__main__":  
     if len(sys.argv) == 5:
-        eval(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+        eval_use_weight(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     else:
         print("Error. please check your arguments:")
-        print("python evaluate_model.py [resnet layer] [path_weight_file] [test_file] [class_num] ")    
+        print("python evaluate_model.py [model name] [path_weight_file] [test_file] [class_num] ")    
