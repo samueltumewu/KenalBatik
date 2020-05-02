@@ -9,11 +9,9 @@ from keras.preprocessing import image
 from keras.utils import layer_utils
 from keras.utils.data_utils import get_file
 from keras.applications.imagenet_utils import preprocess_input
-# import pydot
-# from IPython.display import SVG
 from keras.utils.vis_utils import model_to_dot
 from keras.utils import plot_model
-from keras.initializers import glorot_uniform
+from keras.initializers import he_uniform
 import keras.backend as K
 K.set_image_data_format('channels_last')
 K.set_learning_phase(1)
@@ -23,7 +21,7 @@ import h5py
 
 def identity_block(X, f, filters, stage, block):
     """
-    Implementation of the identity block as defined in Figure 3
+    Implementation of the identity block
     
     Arguments:
     X -- input tensor of shape (m, n_H_prev, n_W_prev, n_C_prev)
@@ -47,11 +45,11 @@ def identity_block(X, f, filters, stage, block):
     X_shortcut = X
         
     # Second component of main path (≈3 lines)
-    X = Conv2D(filters = F1, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = Conv2D(filters = F1, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2a', kernel_initializer = he_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = he_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
 
     # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
@@ -62,7 +60,7 @@ def identity_block(X, f, filters, stage, block):
 
 def convolutional_block(X, f, filters, stage, block, s = 2):
     """
-    Implementation of the convolutional block as defined in Figure 4
+    Implementation of the convolutional block
     
     Arguments:
     X -- input tensor of shape (m, n_H_prev, n_W_prev, n_C_prev)
@@ -88,19 +86,19 @@ def convolutional_block(X, f, filters, stage, block, s = 2):
 
 
     ##### MAIN PATH #####
-    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (s,s), padding = 'same', name = conv_name_base + '2a', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (s,s), padding = 'same', name = conv_name_base + '2a', kernel_initializer = he_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2a')(X)
     X = Activation('relu')(X)
 
-    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = glorot_uniform(seed=0))(X)
+    X = Conv2D(filters = F2, kernel_size = (f, f), strides = (1,1), padding = 'same', name = conv_name_base + '2b', kernel_initializer = he_uniform(seed=0))(X)
     X = BatchNormalization(axis = 3, name = bn_name_base + '2b')(X)
 
-    ##### SHORTCUT PATH #### (≈2 lines)
+    ##### SHORTCUT PATH ####
     X_shortcut = Conv2D(filters = F1, kernel_size = (1, 1), strides = (s,s), padding = 'valid', name = conv_name_base + '1',
-                        kernel_initializer = glorot_uniform(seed=0))(X_shortcut)
+                        kernel_initializer = he_uniform(seed=0))(X_shortcut)
     X_shortcut = BatchNormalization(axis = 3, name = bn_name_base + '1')(X_shortcut)
 
-    # Final step: Add shortcut value to main path, and pass it through a RELU activation (≈2 lines)
+    # Add shortcut value to main path
     X = Add()([X, X_shortcut])
     X = Activation('relu')(X)
     
@@ -126,30 +124,26 @@ def ResNet18(input_shape, classes, dropout_value=0.3):
     X_input = Input(input_shape)
 
     # Zero-Padding
-    # X = ZeroPadding2D((3, 3))(X_input)
     X = (X_input)
 
     # Stage 1
-    X = Conv2D(64, (7, 7), strides=(2, 2), name='res1', kernel_initializer=glorot_uniform(seed=0))(X)
+    X = Conv2D(64, (7, 7), strides=(2, 2), name='res1', kernel_initializer=he_uniform(seed=0))(X)
     X = BatchNormalization(axis=3, name='bn_res1')(X)
     X = Activation('relu')(X)
     X = MaxPooling2D((3, 3), strides=(2, 2))(X)
 
     # Stage 2
     X = convolutional_block(X, f=3, filters=[64, 64], stage=2, block='a', s=1)
-    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [64, 64], stage=2, block='b')
     X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 3
     X = convolutional_block(X, f = 3, filters = [128, 128], stage = 3, block='a', s = 2)
-    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [128, 128], stage=3, block='b')
     X = Dropout(DROPOUT_VALUE)(X)
 
     # Stage 4
     X = convolutional_block(X, f = 3, filters = [256, 256], stage = 4, block='a', s = 2)
-    # X = Dropout(DROPOUT_VALUE)(X)
     X = identity_block(X, 3, [256, 256], stage=4, block='b')
     X = Dropout(DROPOUT_VALUE)(X)
 
@@ -158,15 +152,12 @@ def ResNet18(input_shape, classes, dropout_value=0.3):
     X = identity_block(X, 3, [512, 512], stage=5, block='b')
     X = Dropout(DROPOUT_VALUE)(X)
 
-    # AVGPOOL (≈1 line). Use "X = AveragePooling2D(...)(X)"
+    # AVGPOOL
     X = AveragePooling2D((2,2), name="avg_pool")(X)
-    ### END CODE HERE ###
 
     # output layer
     X = Flatten()(X)
-    X = Dropout(DROPOUT_VALUE)(X)
-    X = Dense(classes, activation='softmax', name='fc' + str(classes), kernel_initializer = glorot_uniform(seed=0))(X)
-    
+    X = Dense(classes, activation='softmax', name='fc' + str(classes), kernel_initializer = he_uniform(seed=0))(X)
     
     # Create model
     model = Model(inputs = X_input, outputs = X, name='ResNet18')
