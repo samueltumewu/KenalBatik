@@ -1,3 +1,3 @@
 # on this project
-.ipynb_checkpoints/*
-MAIN_SYSTEM/__pycache__/*
+.ipynb_checkpoints/
+MAIN_SYSTEM/__pycache__/
