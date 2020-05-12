@@ -41,60 +41,6 @@ def retrieve_test_dataset(test_file, num_class):
     
     return X_test, Y_test 
 
-def eval_use_weight(model_name, path_weight_file, test_file, class_num):
-    """
-    evaluating model by using weights
-
-    Arguments:\n
-    model_name --> String, Resnet50/Resnet18/VGG16/VGG19
-    path_weight_file --> String, path which store .hdf5 of model's weight\n
-    test_file --> String, path to which store .h5 file of test dataset
-    class_num --> Int, number of class/label\n
-
-    Returns:\n
-    none
-    """
-    # Init new model
-    if model_name.lower() == "resnet18":
-        print("loading resnet18...")
-        new_model = ResNet18(input_shape=(224, 224, 3), classes=int(class_num))
-    elif model_name.lower() == "resnet50":
-        print("loading resnet50...")
-        new_model = ResNet50(input_shape=(224, 224, 3), classes=int(class_num))
-    if model_name.lower() == "vgg16":
-        print("loading vgg16...")
-        img_height,img_width = 224,224 
-        num_classes = int(class_num)
-        base_model = applications.vgg16.VGG16(weights= None, include_top=False, input_shape= (img_height,img_width,3))
-        x = base_model.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dropout(0.5)(x)
-        out = Dense(num_classes, activation= 'softmax')(x)
-        new_model = Model(inputs = base_model.input, outputs = out)
-    elif model_name.lower() == "vgg19":
-        print("loading vgg19...")
-        img_height,img_width = 224,224 
-        num_classes = int(class_num)
-        base_model = applications.vgg19.VGG19(weights= None, include_top=False, input_shape= (img_height,img_width,3))
-        x = base_model.output
-        x = GlobalAveragePooling2D()(x)
-        x = Dropout(0.5)(x)
-        out = Dense(num_classes, activation= 'softmax')(x)
-        new_model = Model(inputs = base_model.input, outputs = out)
-    
-    # Load model weights
-    new_model = Model()
-    new_model = load_model(path_weight_file)
-
-    # retrieve X_test, Y_test
-    X_test, Y_test = retrieve_test_dataset(test_file, int(class_num))
-
-    # Evaluate the model
-    adam = optimizers.Adam(lr=0.0001)
-    new_model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
-    loss, acc = new_model.evaluate(X_test, Y_test)
-    print(f"loss: {loss},   acc: {acc}")
-
 def eval_use_model(model_name, path_model_file, test_file, class_num):
     """
     evaluating model by using entire model (weights, architecture, optimizers, etc.)
