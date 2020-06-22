@@ -13,6 +13,8 @@ from keras import applications
 from keras.models import Sequential,Model,load_model
 from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPool2D,GlobalAveragePooling2D
 
+import tensorflow.keras.metrics as metrics
+
 def retrieve_test_dataset(test_file, num_class):
     """
     load and preprocess test dataset from .h5 file
@@ -57,13 +59,17 @@ def eval_use_model(model_name, path_model_file, test_file, class_num):
     # Load model weights
     new_model = Model()
     new_model = load_model(path_model_file)
+    new_model.compile(optimizer= 'adam', loss='categorical_crossentropy', metrics=[metrics.AUC(), metrics.CategoricalAccuracy(), metrics.TruePositives(), metrics.TrueNegatives(), metrics.FalsePositives(), metrics.FalseNegatives()])
 
     # retrieve X_test, Y_test
     X_test, Y_test = retrieve_test_dataset(test_file, int(class_num))
 
     for i in range(4):
-        loss, acc = new_model.evaluate(X_test, Y_test)
-        print(f"{i}--> loss: {loss},   acc: {acc}")
+        hasil = new_model.evaluate(X_test, Y_test)
+        print(new_model.metrics_names)
+        print(hasil)
+        # loss, acc = new_model.evaluate(X_test, Y_test)
+        # print(f"{i}--> loss: {loss},   acc: {acc}")
 
 if __name__ == "__main__":  
     if len(sys.argv) == 5:
