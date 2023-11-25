@@ -1,4 +1,9 @@
 # KENALBATIK
+
+## Introduction
+- The publication is titled under: [Klasifikasi Motif Batik menggunakan metode Deep Convolutional Neural Network dengan Data Augmentation](http://publication.petra.ac.id/index.php/teknik-informatika/article/view/10519)
+- The web Application repo can be found [here](https://github.com/samueltumewu/KenalBatik-app)
+
 ## Resnet-Batik-Classification
 Classify Batik (Ceplok, Kawung, Lereng, Nitik, Parang, Lunglungan, and Semen) using Resnet50 and Resnet18.
 
@@ -49,3 +54,7 @@ python main.py resnet50 dataset/train.h5 dataset/val.h5 -c5 -b32 -lr 1e-3
 - Matplotlib
 - H5py
 - sklearn
+
+## Poster
+<img width="318" alt="Batik Classification using Machine Learning" src="https://github.com/samueltumewu/KenalBatik/assets/34823485/eecd276b-d454-4895-9d3a-1742fc5b7129">
+
